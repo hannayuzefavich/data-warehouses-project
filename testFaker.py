@@ -92,7 +92,7 @@ def fakeAddress(n):
         temp['city'] = fake.city()
         temp['neighbourhood'] = fake.city_suffix()  
         temp['street '] = fake.street_name()  
-        temp['house_number '] = fake.building_number()  
+        temp['house_number '] = fake.random_int(min=1, max=50)  
         temp['apartment_number '] = fake.random_int(min=1, max=50)
         temp['postal_code'] = fake.postcode()  
         data.append(temp)

@@ -5,6 +5,8 @@ import threading
 import concurrent.futures
 import json
 import time
+import os
+from multiprocessing import Pool
 
 fake = Faker()
 
@@ -14,14 +16,20 @@ EMPLOYEES_NUMBER = 5
 
 start_time = time.time()
 lock = threading.Lock()
-data = []
+
 def fakeOffice(n):
+    fake2 = Faker()
+    data = []
+    print(os.getpid())
     for i in range(1, n):
         temp = {}
         temp['pk']= i
-        temp['address'] = fake.address()  
-        with lock:
-            data.append(temp)
+        temp['address'] = fake2.address()  
+        data.append(temp)
+    return data
+        #with lock:
+           # data.append(temp)
+    
         
 # data provider for generating fake positions for employees
 employee_positions_provider = DynamicProvider(
@@ -65,14 +73,26 @@ def fakeRealEstate(n):
         data.append(temp)
     print(data)
 
-pool = concurrent.futures.ThreadPoolExecutor(max_workers=5)
 
-for i in range(5):
-    pool.submit(fakeOffice(10000))
-pool.shutdown(wait=True)
-with open("results.json", "a") as f:
-    json.dump(data, f, indent=0)
-end_time = time.time()
-elapsed_time = end_time - start_time
+def generateMultithreaded(thread_count):
+    with concurrent.futures.ProcessPoolExecutor(max_workers=thread_count) as executor:
+        results = [executor.submit(fakeOffice, 10000) for _ in range(thread_count)]
+        
+        all_data = []
+        for r in results:
+            all_data.extend(r.result())
+    return all_data
 
-print(f"time: {elapsed_time}")
+def main():
+    #results = generateMultithreaded(5)
+    results = fakeOffice(50000)
+    with open("results.json", "w") as json_file:
+       json.dump(results, json_file)
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    print(f"time: {elapsed_time}")
+
+if __name__ == "__main__":
+    main()

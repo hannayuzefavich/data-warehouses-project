@@ -7,8 +7,9 @@ import json
 import time
 import os
 from multiprocessing import Pool
+import csv
 
-fake = Faker()
+fake = Faker('pl_PL')
 
 OFFICE_NUMBER = 5
 REAL_ESTATE_NUMBER = 5
@@ -83,11 +84,27 @@ def generateMultithreaded(thread_count):
             all_data.extend(r.result())
     return all_data
 
+def fakeAddress(n):
+    data = []
+    print(os.getpid())
+    for i in range(1, n):
+        temp = {}
+        temp['city'] = fake.city()
+        temp['neighbourhood'] = fake.city_suffix()  
+        temp['street '] = fake.street_name()  
+        temp['house_number '] = fake.building_number()  
+        temp['apartment_number '] = fake.random_int(min=1, max=50)
+        temp['postal_code'] = fake.postcode()  
+        data.append(temp)
+    return data
+
 def main():
     #results = generateMultithreaded(5)
-    results = fakeOffice(50000)
-    with open("results.json", "w") as json_file:
-       json.dump(results, json_file)
+    results = fakeAddress(50000)
+    keys = results[0].keys()
+    with open('results.csv', mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=keys)
+        writer.writerows(results)
 
     end_time = time.time()
     elapsed_time = end_time - start_time

@@ -111,7 +111,7 @@ real_estate_type_provider = DynamicProvider(
 fake.add_provider(real_estate_type_provider)
 
 
-def fakeRealEstate(n):
+def fakeRealEstate(n, developers):
     data = []
     for i in range(0, n):
         temp = {}
@@ -121,6 +121,10 @@ def fakeRealEstate(n):
         temp['area'] = randint(20, 80)
         temp['price'] = randint(1000, 5000)
         temp['owner'] = fake.name()
+        if randint(0,1) == 1:
+            temp['owner'] = fake.name()
+        else:
+            temp['owner'] = developers[randint(0,len(developers))]['company_name']
         data.append(temp)
     return data
 
@@ -298,10 +302,16 @@ def main():
     results = fakeEmployeePromoted(EMPLOYEES_NUMBER, employee_promoted_results)
     writeEmployee2ToFile('employess_t2.csv', results)
 
-    results = generateMultithreaded(fakeRealEstate, PROCESSES, REAL_ESTATE_NUMBER)
+
+    results = generateMultithreaded(fakeDeveloper, PROCESSES, ADDRESSES_NUMBER)
+    writeToFile('developers.csv', results)
+
+    developers = results
+
+    results = generateMultithreaded(fakeRealEstate, PROCESSES, REAL_ESTATE_NUMBER, developers)
     writeToFile('real_estates.csv', results)
 
-    r = generateMultithreaded(fakeOrder, PROCESSES, ORDER_NUMBER)
+    r = generateMultithreaded(fakeOrder, PROCESSES, PROCESSES * ORDER_NUMBER)
     results = r[0]
     invoices = r[1]
     orders = results
@@ -311,10 +321,7 @@ def main():
     results = generateMultithreaded(fakeAddress, PROCESSES, ADDRESSES_NUMBER)
     writeToFile('addresses.csv', results)
 
-    results = generateMultithreaded(fakeDeveloper, PROCESSES, ADDRESSES_NUMBER)
-    writeToFile('developers.csv', results)
-
-    developers = results
+    
     results = generateMultithreaded(fakeOffers, PROCESSES, ADDRESSES_NUMBER, developers)
     writeToFile('offers.csv', results)
 

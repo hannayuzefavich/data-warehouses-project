@@ -34,7 +34,7 @@ lock = threading.Lock()
 
 def fakeOffice(n):
     data = []
-    print(os.getpid())
+    #print(os.getpid())
     for i in range(0, n):
         temp = {}
         temp['FK_address'] = fake.random_int(min=1, max=ADDRESSES_NUMBER)
@@ -124,14 +124,14 @@ def fakeRealEstate(n, developers):
         if randint(0,1) == 1:
             temp['owner'] = fake.name()
         else:
-            temp['owner'] = developers[randint(0,len(developers))]['company_name']
+            temp['owner'] = developers[randint(0,len(developers)-1)]['company_name']
         data.append(temp)
     return data
 
 
 def generateMultithreaded(func, thread_count, objects_count, *args):
     with concurrent.futures.ProcessPoolExecutor(max_workers=thread_count) as executor:
-        print(int(math.ceil(objects_count / thread_count)))
+        #print(int(math.ceil(objects_count / thread_count)))
         results = [executor.submit(func, int(math.ceil(objects_count / thread_count)), *args) for _ in
                    range(thread_count)]
 
@@ -149,7 +149,7 @@ def generateMultithreaded(func, thread_count, objects_count, *args):
 
 def fakeAddress(n):
     data = []
-    print(os.getpid())
+    #print(os.getpid())
     for i in range(0, n):
         temp = {}
         temp['city'] = fake.city()
@@ -174,7 +174,7 @@ def fakeOrder(n):
     data = []
     orders = []
     invoices = []
-    print(os.getpid())
+    print("pid: " + str(os.getpid()))
     for i in range(0, n):
         temp = {}
         temp['real_estate'] = fake.random_int(min=1, max=REAL_ESTATE_NUMBER - 1)
@@ -209,7 +209,7 @@ fake.add_provider(payment_type_provider)
 
 def fakeInvoice(n, orders):
     data = []
-    print(os.getpid())
+    #print(os.getpid())
     for i in range(0, n):
         temp = {}
         temp['FK_order'] = fake.random_int(min=0, max=ORDER_NUMBER - 1)
@@ -297,7 +297,7 @@ def main():
     results, employee_info = generateMultithreaded(fakeEmployee, PROCESSES, EMPLOYEES_NUMBER)
     employee_promoted_results = results
     employee_promoted_results = writeToFile('employess.csv', results)
-    print(employee_promoted_results)
+
     #results = generateMultithreaded(fakeEmployeePromoted, PROCESSES, EMPLOYEES_NUMBER, employee_promoted_results)
     results = fakeEmployeePromoted(EMPLOYEES_NUMBER, employee_promoted_results)
     writeEmployee2ToFile('employess_t2.csv', results)

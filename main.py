@@ -15,7 +15,8 @@ import math
 
 fake = Faker('pl_PL')
 
-OFFICE_NUMBER = 20
+OFFICE_NUMBER = 100
+OFFICE_NUMBER_T2 = 20
 REAL_ESTATE_NUMBER = 500
 EMPLOYEES_NUMBER = 100
 T1_start_date = date(2020, 1, 1)
@@ -25,6 +26,7 @@ T2_end_date = date(2023, 12, 31)
 ORDER_NUMBER = 1000
 ORDER_NUMBER_T2 = 100
 ADDRESSES_NUMBER = 200
+ADDRESSES_NUMBER_T2 = 100
 DEVELOPERS_NUMBER = 100
 DEVELOPERS_NUMBER_T2 = 100
 
@@ -283,7 +285,7 @@ def fakeOffers(n, developers):
     data = []
     for i in range(0, n):
         temp = {}
-        temp['developer_nip'] = developers[randint(0, len(developers) - 1)]['nip']
+        temp['developer_nip'] = randint(1,DEVELOPERS_NUMBER)
         temp['rent_price'] = round(random.uniform(500.00, 5000.00), 2)
         temp['apartment_size'] = round(random.uniform(30.00, 150.00), 2)
         temp['address'] = fake.address().replace("\n", ", ")
@@ -298,7 +300,7 @@ def fakeOffersT2(n, developers):
     data = []
     for i in range(0, n):
         temp = {}
-        temp['developer_nip'] = developers[randint(0, len(developers) - 1)]['nip']
+        temp['developer_nip'] = randint(DEVELOPERS_NUMBER,DEVELOPERS_NUMBER_T2)
         temp['rent_price'] = round(random.uniform(500.00, 5000.00), 2)
         temp['apartment_size'] = round(random.uniform(30.00, 150.00), 2)
         temp['address'] = fake.address().replace("\n", ", ")
@@ -309,12 +311,12 @@ def fakeOffersT2(n, developers):
         data.append(temp)
     return data
 
-def writeToFile(filename, data):
+def writeToFile(filename, data, firstIndex=0):
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
         fieldnames = ['Nr'] + list(data[0].keys())
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         for index, row in enumerate(data, start=1):
-            data[index-1]['Nr'] = index
+            data[index-1]['Nr'] = index+firstIndex
             row_with_index = {'Nr': index, **row}
             writer.writerow(row_with_index)
     return data
@@ -328,13 +330,13 @@ def writeEmployee2ToFile(filename, data):
             writer.writerow(row_with_index)
     return data
 
-def writeOrdersToFile(filename, data, employee_composite_pk):
+def writeOrdersToFile(filename, data, employee_composite_pk, firstIndex=0):
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
         fieldnames = ['Nr', 'EmployeeID', 'EmploymentDate'] + list(data[0].keys())
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         for index, row in enumerate(data, start=1):
             employee_id, employment_date = random.choice(employee_composite_pk)
-            row_with_index = {'Nr': index,
+            row_with_index = {'Nr': index+firstIndex,
                               'EmployeeID': employee_id,
                               'EmploymentDate': employment_date,
                               **row}
@@ -344,6 +346,9 @@ def main():
     PROCESSES = 4
     results = generateMultithreaded(fakeOffice, PROCESSES, OFFICE_NUMBER)
     writeToFile('offices.csv', results)
+
+    results = generateMultithreaded(fakeOffice, PROCESSES, OFFICE_NUMBER_T2)
+    writeToFile('offices_t2.csv', results, OFFICE_NUMBER)
 
     results, employee_info = generateMultithreaded(fakeEmployee, PROCESSES, EMPLOYEES_NUMBER)
     employee_promoted_results = results
@@ -363,12 +368,12 @@ def main():
     writeToFile('real_estates.csv', results)
 
     results = generateMultithreaded(fakeDeveloperT2, PROCESSES, DEVELOPERS_NUMBER_T2)
-    writeToFile('developers_t2.csv', results)
+    writeToFile('developers_t2.csv', results, DEVELOPERS_NUMBER)
 
     developers = results
 
     results = generateMultithreaded(fakeRealEstate, PROCESSES, REAL_ESTATE_NUMBER, DEVELOPERS_NUMBER_T2)
-    writeToFile('real_estates_t2.csv', results)
+    writeToFile('real_estates_t2.csv', results, REAL_ESTATE_NUMBER)
 
     r = generateMultithreaded(fakeOrder, PROCESSES, PROCESSES * ORDER_NUMBER)
     results = r[0]
@@ -381,18 +386,21 @@ def main():
     results = r[0]
     invoices = r[1]
     orders = results
-    writeOrdersToFile('orders_t2.csv', results, employee_info)
-    writeToFile('invoices_t2.csv', invoices)
+    writeOrdersToFile('orders_t2.csv', results, employee_info, ORDER_NUMBER)
+    writeToFile('invoices_t2.csv', invoices, ORDER_NUMBER_T2)
 
     results = generateMultithreaded(fakeAddress, PROCESSES, ADDRESSES_NUMBER)
     writeToFile('addresses.csv', results)
+
+    results = generateMultithreaded(fakeAddress, PROCESSES, ADDRESSES_NUMBER_T2)
+    writeToFile('addresses_t2.csv', results, ADDRESSES_NUMBER)
 
     
     results = generateMultithreaded(fakeOffers, PROCESSES, ADDRESSES_NUMBER, developers)
     writeToFile('offers.csv', results)
 
     results = generateMultithreaded(fakeOffersT2, PROCESSES, ADDRESSES_NUMBER, developers)
-    writeToFile('offers_t2.csv', results)
+    writeToFile('offers_t2.csv', results, ADDRESSES_NUMBER)
 
     end_time = time.time()
     elapsed_time = end_time - start_time

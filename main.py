@@ -182,7 +182,7 @@ def fakeOrder(n):
         temp['margin'] = fake.pyfloat(left_digits=2, right_digits=2, positive=True, min_value=5, max_value=50)
         temp['status'] = fake.real_estate_status()
         temp['rent'] = fake.random_int(min=1, max=36)
-        temp['rent_start_date'] = fake.date_between(start_date=T1_start_date, end_date=T1_end_date)
+        temp['rent_start_date'] = fake.date_between(start_date=temp['date_of_order'], end_date=temp['date_of_order']+ relativedelta(days=30))
         temp['rent_end_date'] = temp['rent_start_date'] + relativedelta(months=int(temp['rent']))
         order_date = temp['date_of_order']
         orders.append(temp)
@@ -210,7 +210,7 @@ def fakeOrderT2(n):
         temp['margin'] = fake.pyfloat(left_digits=2, right_digits=2, positive=True, min_value=5, max_value=50)
         temp['status'] = fake.real_estate_status()
         temp['rent'] = fake.random_int(min=1, max=36)
-        temp['rent_start_date'] = fake.date_between(start_date=T2_start_date, end_date=T2_end_date)
+        temp['rent_start_date'] = fake.date_between(start_date=temp['date_of_order'], end_date=temp['date_of_order']+ relativedelta(days=30))
         temp['rent_end_date'] = temp['rent_start_date'] + relativedelta(months=int(temp['rent']))
         order_date = temp['date_of_order']
         orders.append(temp)

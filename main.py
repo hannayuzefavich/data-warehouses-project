@@ -23,11 +23,13 @@ T1_end_date = date(2022, 12, 31)
 T2_start_date = date(2023, 1, 1)
 T2_end_date = date(2023, 12, 31)
 ORDER_NUMBER = 1000
+ORDER_NUMBER_T2 = 100
 ADDRESSES_NUMBER = 200
 DEVELOPERS_NUMBER = 100
+DEVELOPERS_NUMBER_T2 = 100
 
 start_time = time.time()
-lock = threading.Lock()
+#lock = threading.Lock()
 
 
 
@@ -120,11 +122,7 @@ def fakeRealEstate(n, developers):
         temp['number_of_rooms'] = randint(1, 5)
         temp['area'] = randint(20, 80)
         temp['price'] = randint(1000, 5000)
-        temp['owner'] = fake.name()
-        if randint(0,1) == 1:
-            temp['owner'] = fake.name()
-        else:
-            temp['owner'] = developers[randint(0,len(developers)-1)]['company_name']
+        temp['owner'] = randint(1,developers)
         data.append(temp)
     return data
 
@@ -198,6 +196,33 @@ def fakeOrder(n):
     data.append(invoices)
     return data
 
+def fakeOrderT2(n):
+    data = []
+    orders = []
+    invoices = []
+    print("pid: " + str(os.getpid()))
+    for i in range(0, n):
+        temp = {}
+        temp['real_estate'] = fake.random_int(min=1, max=REAL_ESTATE_NUMBER - 1)
+        temp['date_of_order'] = fake.date_between(start_date=T2_start_date, end_date=T2_end_date)
+        temp['margin'] = fake.pyfloat(left_digits=2, right_digits=2, positive=True, min_value=5, max_value=50)
+        temp['status'] = fake.real_estate_status()
+        temp['rent'] = fake.random_int(min=1, max=36)
+        temp['rent_start_date'] = fake.date_between(start_date=T2_start_date, end_date=T2_end_date)
+        temp['rent_end_date'] = temp['rent_start_date'] + relativedelta(months=int(temp['rent']))
+        order_date = temp['date_of_order']
+        orders.append(temp)
+        temp = {}
+        temp['FK_order'] = fake.random_int(min=1, max=ORDER_NUMBER - 1)
+        temp['issue_date'] = fake.date_between(start_date=order_date, end_date=order_date + relativedelta(days=14))
+        temp['price'] = fake.random_int(min=1000, max=5000)
+        temp['payment_date'] = fake.date_between(start_date=temp['issue_date'],
+                                                 end_date=temp['issue_date'] + relativedelta(days=14))
+        temp['payment_form'] = fake.payment_type()
+        invoices.append(temp)
+    data.append(orders)
+    data.append(invoices)
+    return data
 
 # data provider for order status
 payment_type_provider = DynamicProvider(
@@ -234,13 +259,25 @@ def fakeDeveloper(n):
         temp = {}
         temp['company_name'] = fake.company()
         temp['nip'] = fake.numerify(text='###-###-##-##')
-        temp['start_date'] = fake.date_between(start_date='-5y', end_date='today')
+        temp['start_date'] = fake.date_between(start_date=T1_start_date, end_date=T1_end_date)
         temp['developer_start_date'] = fake.date_between(start_date='-10y', end_date='today')
         temp['credit_rating'] = random.choice(['Bardzo dobra', 'Dobra', 'Średnia', 'Zła'])
         temp['project_count'] = random.randint(1, 50)
         data.append(temp)
     return data
 
+def fakeDeveloperT2(n):
+    data = []
+    for i in range(0, n):
+        temp = {}
+        temp['company_name'] = fake.company()
+        temp['nip'] = fake.numerify(text='###-###-##-##')
+        temp['start_date'] = fake.date_between(start_date=T2_start_date, end_date=T2_end_date)
+        temp['developer_start_date'] = fake.date_between(start_date='-10y', end_date='today')
+        temp['credit_rating'] = random.choice(['Bardzo dobra', 'Dobra', 'Średnia', 'Zła'])
+        temp['project_count'] = random.randint(1, 50)
+        data.append(temp)
+    return data
 
 def fakeOffers(n, developers):
     data = []
@@ -250,13 +287,27 @@ def fakeOffers(n, developers):
         temp['rent_price'] = round(random.uniform(500.00, 5000.00), 2)
         temp['apartment_size'] = round(random.uniform(30.00, 150.00), 2)
         temp['address'] = fake.address().replace("\n", ", ")
-        temp['planned_end_date'] = fake.date_between(start_date='today', end_date='+1y')
+        temp['planned_end_date'] = fake.date_between(start_date=T1_start_date, end_date=T1_end_date)
         temp['actual_end_date'] = fake.date_between(start_date=temp['planned_end_date'],
                                                     end_date=temp['planned_end_date'] + relativedelta(days=30))
         temp['status'] = random.choice(['gotowe', 'oczekuje'])
         data.append(temp)
     return data
 
+def fakeOffersT2(n, developers):
+    data = []
+    for i in range(0, n):
+        temp = {}
+        temp['developer_nip'] = developers[randint(0, len(developers) - 1)]['nip']
+        temp['rent_price'] = round(random.uniform(500.00, 5000.00), 2)
+        temp['apartment_size'] = round(random.uniform(30.00, 150.00), 2)
+        temp['address'] = fake.address().replace("\n", ", ")
+        temp['planned_end_date'] = fake.date_between(start_date=T2_start_date, end_date=T2_end_date)
+        temp['actual_end_date'] = fake.date_between(start_date=temp['planned_end_date'],
+                                                    end_date=temp['planned_end_date'] + relativedelta(days=30))
+        temp['status'] = random.choice(['gotowe', 'oczekuje'])
+        data.append(temp)
+    return data
 
 def writeToFile(filename, data):
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
@@ -303,13 +354,21 @@ def main():
     writeEmployee2ToFile('employess_t2.csv', results)
 
 
-    results = generateMultithreaded(fakeDeveloper, PROCESSES, ADDRESSES_NUMBER)
+    results = generateMultithreaded(fakeDeveloper, PROCESSES, DEVELOPERS_NUMBER)
     writeToFile('developers.csv', results)
 
     developers = results
 
-    results = generateMultithreaded(fakeRealEstate, PROCESSES, REAL_ESTATE_NUMBER, developers)
+    results = generateMultithreaded(fakeRealEstate, PROCESSES, REAL_ESTATE_NUMBER, DEVELOPERS_NUMBER)
     writeToFile('real_estates.csv', results)
+
+    results = generateMultithreaded(fakeDeveloperT2, PROCESSES, DEVELOPERS_NUMBER_T2)
+    writeToFile('developers_t2.csv', results)
+
+    developers = results
+
+    results = generateMultithreaded(fakeRealEstate, PROCESSES, REAL_ESTATE_NUMBER, DEVELOPERS_NUMBER_T2)
+    writeToFile('real_estates_t2.csv', results)
 
     r = generateMultithreaded(fakeOrder, PROCESSES, PROCESSES * ORDER_NUMBER)
     results = r[0]
@@ -317,6 +376,13 @@ def main():
     orders = results
     writeOrdersToFile('orders.csv', results, employee_info)
     writeToFile('invoices.csv', invoices)
+    
+    r = generateMultithreaded(fakeOrderT2, PROCESSES, PROCESSES * ORDER_NUMBER_T2)
+    results = r[0]
+    invoices = r[1]
+    orders = results
+    writeOrdersToFile('orders_t2.csv', results, employee_info)
+    writeToFile('invoices_t2.csv', invoices)
 
     results = generateMultithreaded(fakeAddress, PROCESSES, ADDRESSES_NUMBER)
     writeToFile('addresses.csv', results)
@@ -324,6 +390,9 @@ def main():
     
     results = generateMultithreaded(fakeOffers, PROCESSES, ADDRESSES_NUMBER, developers)
     writeToFile('offers.csv', results)
+
+    results = generateMultithreaded(fakeOffersT2, PROCESSES, ADDRESSES_NUMBER, developers)
+    writeToFile('offers_t2.csv', results)
 
     end_time = time.time()
     elapsed_time = end_time - start_time

@@ -300,7 +300,7 @@ def fakeOffersT2(n, developers):
     data = []
     for i in range(0, n):
         temp = {}
-        temp['developer_nip'] = randint(DEVELOPERS_NUMBER,DEVELOPERS_NUMBER_T2)
+        temp['developer_nip'] = randint(0,DEVELOPERS_NUMBER_T2)
         temp['rent_price'] = round(random.uniform(500.00, 5000.00), 2)
         temp['apartment_size'] = round(random.uniform(30.00, 150.00), 2)
         temp['address'] = fake.address().replace("\n", ", ")
